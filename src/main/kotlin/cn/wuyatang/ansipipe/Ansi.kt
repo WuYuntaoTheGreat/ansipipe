@@ -65,8 +65,8 @@ interface Ansi {
         object clrLLeft     : Control("$ESC[1K")
         object clrLine      : Control("$ESC[2K")
 
-        object save         : Control("$ESC[s")
-        object restore      : Control("$ESC[u")
+        object save         : Control("${ESC}7") // Control("$ESC[s")
+        object restore      : Control("${ESC}8") // Control("$ESC[u")
     }
 
     sealed class Key(val name: String) {

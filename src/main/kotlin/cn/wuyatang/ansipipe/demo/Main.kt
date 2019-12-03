@@ -8,7 +8,7 @@ import cn.wuyatang.ansipipe.Ansi.Feature.*
 import cn.wuyatang.ansipipe.Ansi.Key
 import cn.wuyatang.ansipipe.PipeProcessor
 
-class Main: PipeProcessor {
+class Demo: PipeProcessor {
 
     /**
      * Handle one loop of pipe process.
@@ -40,6 +40,7 @@ class Main: PipeProcessor {
         var c: Int = width / 2 - 20
 
         var ret = "" //+ clrAll
+        ret += save + ""
         ret += pos(r++, c) + "                                            ".fmt(*dlgTxt)
         ret += pos(r++, c) + " +----(Press Ctrl-C to exit)--------------+ ".fmt(*dlgTxt)
         ret += pos(r++, c) + " |                                        | ".fmt(*dlgTxt) + " ".fmt(*shdw)
@@ -59,6 +60,7 @@ class Main: PipeProcessor {
         ret += pos(r++, c) + "Input:  ".fmt(*dlgTxt) + "\"$inLine\"".fmt(bold, red.fgBr, blue.bg)
         ret += pos(r++, c) + "Key:    ".fmt(*dlgTxt) + key.fmt(*dlgTxt)
         ret += pos(r, c)
+        ret += restore + ""
 
         return ret
     }
@@ -68,7 +70,7 @@ class Main: PipeProcessor {
  * The main entrance.
  */
 fun main(args: Array<String>){
-    Main().loop()
+    Demo().loop()
 }
 
 
