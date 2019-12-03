@@ -55,3 +55,8 @@ In project root, type following:
 ./script/demo.sh
 
 ```
+> Known problem: you need to press a key to see the menu.
+
+Screenshot:
+![screenshot](./screenshot.png)
+
