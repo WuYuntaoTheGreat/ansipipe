@@ -1,17 +1,51 @@
-#!/usr/local/bin/bash
+#!/dev/null
+# ========================================
+# DO NOT CALL THIS SCRIPT DIRECTLY
+usage(){
+    cat <<EOF
+Usage:"
+<shell> -c ansipipe.sh <shellname> <command>"
 
+Example:
+/bin/bash -c ansipipe.sh bash java -jar /path/to/jar
+/bin/zsh -c ansipipe.sh zsh java -jar /path/to/jar
+EOF
+}
+# ========================================
+
+case $1 in
+    bash)
+        READ_N1="read -s -N1"
+        READ_N1_T="read -s -N1 -t 0.001"
+        READ_N2_T="read -s -N2 -t 0.001"
+        ;;
+    zsh)
+        READ_N1="read -s -k1"
+        READ_N1_T="read -s -k1 -t 0.001"
+        READ_N2_T="read -s -k2 -t 0.001"
+        ;;
+    *)
+        echo "$1 not supported!"
+        usage
+        exit 1
+        ;;
+esac
+
+shift
 if [[ $# -lt 1 ]]; then
-    echo "Usage: $0 <command>"
+    usage
     exit 1
 fi
 
-PREFIX=ansipipe
-#FIFO_IN=/tmp/$PREFIX.in.fifo
+#
+# Make FIFO file
+#
 FIFO_IN=$(mktemp)
-
-#[ -p $FIFO_IN  ] || mkfifo $FIFO_IN
 rm $FIFO_IN && mkfifo $FIFO_IN
 
+#
+# Start internal program
+#
 $* < $FIFO_IN &
 INNER_PID=$!
 
@@ -37,9 +71,9 @@ read_raw_keys () {
     # Trap the alarm char input.
     # This will cause error.
     trap "" SIGALRM
-    read -s -N1 K1
-    read -s -N2 -t 0.001 K2
-    read -s -N1 -t 0.001 K3
+    $READ_N1    K1
+    $READ_N2_T  K2
+    $READ_N1_T  K3
 
     key="$K1$K2$K3"
 
