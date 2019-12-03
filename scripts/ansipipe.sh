@@ -1,7 +1,7 @@
 #!/dev/null
 # ========================================
 # DO NOT CALL THIS SCRIPT DIRECTLY
-usage(){
+usage() {
     cat <<EOF
 Usage:"
 <shell> -c ansipipe.sh <shellname> <command>"
@@ -12,6 +12,11 @@ Example:
 EOF
 }
 # ========================================
+echo "===================="
+echo $*
+echo "===================="
+echo $1
+echo "===================="
 
 case $1 in
     bash)

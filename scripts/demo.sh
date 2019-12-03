@@ -3,7 +3,7 @@ PROJECT=ansipipe
 DEMO=cn.wuyatang.$PROJECT.demo.Main
 ANSISH=./scripts/ansipipe.sh
 
-if [ "$(uname | grep -io '\(cygwin\|mingw\)'" != "" ]; then
+if [ "$(uname | grep -io '\(cygwin\|mingw\)')"  != "" ]; then
     echo "Windows NOT supported!"
     exit 1
 elif [ "$(uname | grep -io darwin)" != "" ]; then
@@ -16,6 +16,6 @@ fi
 
 ./gradlew jar
 
-$EXEC -c $ANSISH $SHNAME java -jar build/libs/${PROJECT}*.jar $DEMO
+$EXEC $ANSISH $SHNAME java -jar build/libs/${PROJECT}*.jar $DEMO
 
 
