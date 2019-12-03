@@ -12,22 +12,16 @@ Example:
 EOF
 }
 # ========================================
-echo "===================="
-echo $*
-echo "===================="
-echo $1
-echo "===================="
 
-case $1 in
+SHNAME=$1
+shift
+
+case $SHNAME in
     bash)
-        READ_N1="read -s -N1"
-        READ_N1_T="read -s -N1 -t 0.001"
-        READ_N2_T="read -s -N2 -t 0.001"
+        READ_N=N
         ;;
     zsh)
-        READ_N1="read -s -k1"
-        READ_N1_T="read -s -k1 -t 0.001"
-        READ_N2_T="read -s -k2 -t 0.001"
+        READ_N=k
         ;;
     *)
         echo "$1 not supported!"
@@ -36,7 +30,6 @@ case $1 in
         ;;
 esac
 
-shift
 if [[ $# -lt 1 ]]; then
     usage
     exit 1
@@ -76,9 +69,10 @@ read_raw_keys () {
     # Trap the alarm char input.
     # This will cause error.
     trap "" SIGALRM
-    $READ_N1    K1
-    $READ_N2_T  K2
-    $READ_N1_T  K3
+
+    read -s -${READ_N}1 K1
+    read -s -${READ_N}2 -t 0.001 K2
+    read -s -${READ_N}1 -t 0.001 K3
 
     key="$K1$K2$K3"
 
