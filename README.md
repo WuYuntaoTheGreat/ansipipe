@@ -58,7 +58,7 @@ In project root, type following:
 > Known problem: you need to press a key to see the menu.
 
 Screenshot:
-![screenshot](./screenshot.png)
+![screenshot](./SCREENSHOT.png)
 
 How to use
 ==========
