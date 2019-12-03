@@ -60,3 +60,21 @@ In project root, type following:
 Screenshot:
 ![screenshot](./screenshot.png)
 
+How to use
+==========
+In build.gradle:
+
+```
+sourceControl {
+    gitRepository("git@github.com:WuYuntaoTheGreat/ansipipe.git") {
+        producesModule("cn.wuyatang.ansipipe:ansipipe")
+    }
+}
+
+dependencies {
+    ...
+
+    implementation 'cn.wuyatang.ansipipe:ansipipe:v0.1.1'
+}
+
+```
