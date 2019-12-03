@@ -6,9 +6,11 @@ if [[ $# -lt 1 ]]; then
 fi
 
 PREFIX=ansipipe
-FIFO_IN=/tmp/$PREFIX.in.fifo
+#FIFO_IN=/tmp/$PREFIX.in.fifo
+FIFO_IN=$(mktemp)
 
-[ -p $FIFO_IN  ] || mkfifo $FIFO_IN
+#[ -p $FIFO_IN  ] || mkfifo $FIFO_IN
+rm $FIFO_IN && mkfifo $FIFO_IN
 
 $* < $FIFO_IN &
 INNER_PID=$!
@@ -20,6 +22,7 @@ on_interrupt () {
     echo "existing..."
     echo "killing internal program $INNER_PID ..."
     kill -9 $INNER_PID 2>/dev/null
+    rm $FIFO_IN
     trap "" SIGINT
     exit 0
 }
