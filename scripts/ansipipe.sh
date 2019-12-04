@@ -92,6 +92,7 @@ read_raw_keys () {
 # Main loop
 #####################
 main () {
+    echo "$(stty size):<CR>" > $FIFO_IN
     while :; do
         read_raw_keys
     done

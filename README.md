@@ -44,8 +44,8 @@ These 2 parts are connected by a named pipe (__FIFO__)
 
 Precondition
 ============
-1. This library only support __*nix__ shell environment (Linux, Mac OS X, Cygwin, etc.). Windows __cmd__ is not supported. 
-1. Currently, only __bash__ and __zsh__ are supported.
+1. This library only support __*nix__ shell environment (Linux, Mac OS X, Cygwin, MinGW, etc.). Windows __cmd__ is not supported. 
+1. Currently, only __bash__ and __zsh__ are supported. Other shells are not tested.
 
 Demo
 =====
@@ -55,7 +55,6 @@ In project root, type following:
 ./script/demo.sh
 
 ```
-> Known problem: you need to press a key to see the menu.
 
 Screenshot:
 ![screenshot](./SCREEN_SHOT.png)
@@ -78,3 +77,4 @@ dependencies {
 }
 
 ```
+
