@@ -87,3 +87,6 @@ AnchorTVMockupServer/src/main/java
 .idea/.name
 .apishell
 
+#
+temp/
+
