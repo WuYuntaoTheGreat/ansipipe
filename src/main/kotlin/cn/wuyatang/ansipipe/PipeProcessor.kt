@@ -1,39 +1,43 @@
 package cn.wuyatang.ansipipe
 
+import cn.wuyatang.ansipipe.Ansi.Key
+
 /**
  * This interface defines a processor of Pipe.
  * The process will work tightly with the shell script.
  */
-interface PipeProcessor: Ansi {
-
+abstract class PipeProcessor: Ansi {
     /**
      * Handle one loop of pipe process.
      * This function will:
      * 1. Read from the console 1 char.
-     * 2. Then return a line of output.
+     * 2. Then output to the console.
      *
-     * @param width : The width, in characters, of the terminal
-     * @param height : The height, in characters, of the terminal
-     * @param input : The raw input string from the terminal, shall be only one key press.
+     * @param raw The raw input string from the console.
+     * @param key The input key from the console.
+     * @param pen The PipePen object.
      *
-     * @return The output to the shell script.
+     * @return True to continue loop, false to break.
      */
-    fun process(width: Int, height: Int, input: String) : String?
+    abstract fun process(raw: String, key: Key?, pen: PipePen): Boolean
 
     /**
-     *
+     * Loop to read input from the string.
      */
     fun loop(){
         val inputReg = Regex("([0-9]+) +([0-9]+) *:(.*)")
-        while(true) {
+        while(true){
             val input = readLine() ?: continue
             val mt = inputReg.matchEntire(input) ?: continue
 
-            val height = mt.groups[1]!!.value.toInt()
-            val width  = mt.groups[2]!!.value.toInt()
-            val inLine = mt.groups[3]!!.value
+            val h   = mt.groups[1]!!.value.toInt()
+            val w   = mt.groups[2]!!.value.toInt()
+            val raw = mt.groups[3]!!.value
+            val key = Key.parseKey(raw)
 
-            print(process(width, height, inLine))
+            if(!process(raw, key, PipePen(w, h))){
+                break
+            }
         }
     }
 

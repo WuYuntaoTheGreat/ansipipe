@@ -8,6 +8,14 @@ package cn.wuyatang.ansipipe
 interface Ansi {
     companion object {
         const val ESC = '\u001B'
+
+        private fun featuresToString(vararg features: Feature): String =
+            features
+                .map { it.v }
+                .sorted()
+                .map { it.toString() }
+                .let { if(it.isEmpty()) listOf("0") else it }
+                .joinToString(";")
     }
 
     sealed class Feature(val v: Int) {
@@ -67,8 +75,13 @@ interface Ansi {
 
         object save         : Control("${ESC}7") // Control("$ESC[s")
         object restore      : Control("${ESC}8") // Control("$ESC[u")
+
+        class fmt(vararg features: Feature): Control("${ESC}[${ featuresToString(*features) }m")
     }
 
+    /**
+     * Keys from console
+     */
     sealed class Key(val name: String) {
         object Home     : Key("<Home>")
         object Insert   : Key("<Ins>")
@@ -172,27 +185,27 @@ interface Ansi {
         }
     }
 
-    /**
-     * Format a string with color and features.
-     */
-    fun formatFeatures(origin: String, vararg features: Feature): String {
-        val fstr = features
-            .map {
-                it.v
-            }
-            .sorted()
-            .map {
-                it.toString()
-            }
-            .joinToString(";")
-        return "$ESC[${fstr}m${origin}$ESC[0m"
-    }
-
-    /**
-     *
-     */
-    fun String.fmt(vararg features: Feature): String {
-        return formatFeatures(this, *features)
-    }
+//    /**
+//     * Format a string with color and features.
+//     */
+//    fun formatFeatures(origin: String, vararg features: Feature): String {
+//        val fstr = features
+//            .map {
+//                it.v
+//            }
+//            .sorted()
+//            .map {
+//                it.toString()
+//            }
+//            .joinToString(";")
+//        return "$ESC[${fstr}m${origin}$ESC[0m"
+//    }
+//
+//    /**
+//     *
+//     */
+//    fun String.fmt(vararg features: Feature): String {
+//        return formatFeatures(this, *features)
+//    }
 }
 

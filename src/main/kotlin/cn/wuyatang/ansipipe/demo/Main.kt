@@ -2,67 +2,58 @@
 
 package cn.wuyatang.ansipipe.demo
 
-import cn.wuyatang.ansipipe.Ansi.Control.*
 import cn.wuyatang.ansipipe.Ansi.Color.*
-import cn.wuyatang.ansipipe.Ansi.Feature.*
+import cn.wuyatang.ansipipe.Ansi.Control.*
+import cn.wuyatang.ansipipe.Ansi.Feature.bold
 import cn.wuyatang.ansipipe.Ansi.Key
+import cn.wuyatang.ansipipe.PipePen
 import cn.wuyatang.ansipipe.PipeProcessor
 
-class Demo: PipeProcessor {
+class Demo: PipeProcessor() {
 
     /**
      * Handle one loop of pipe process.
      * This function will:
      * 1. Read from the console 1 char.
-     * 2. Then return a line of output.
+     * 2. Then output to the console.
      *
-     * @param width : The width, in characters, of the terminal
-     * @param height : The height, in characters, of the terminal
-     * @param input : The raw input string from the terminal, shall be only one key press.
+     * @param raw The raw input string from the console.
+     * @param key The input key from the console.
+     * @param pen The PipePen object.
      *
-     * @return The output to the shell script.
+     * @return True to continue loop, false to break.
      */
-    override fun process(width: Int, height: Int, input: String): String? {
-        val sizeStr = "($width, $height) "
-        val lenStr  = input.length.toString()
-        val key     = Key.parseKey(input)?.name ?: ""
-        val inLine  = input.map { c ->
-            when (c) {
-                in ' '..'~' -> c.toString()
-                else -> "\\u${String.format("%04X", c.toInt())}"
+    override fun process(raw: String, key: Key?, pen: PipePen): Boolean {
+        var p = pen
+        val sizeStr = "(${pen.w}, ${pen.h}) "
+        val lenStr  = raw.length.toString()
+        val keyName = key?.name ?: ""
+        val inLine  = raw
+            .map { c ->
+                when (c) {
+                    in ' '..'~' -> c.toString()
+                    else -> "\\u${String.format("%04X", c.toInt())}"
+                }
             }
-        }.joinToString("")
+            .joinToString("")
+            .let { "\"$it\"" }
 
-        val shdw = arrayOf(black.bgBr)
         val dlgTxt = arrayOf(white.fgBr, blue.bg)
 
-        var r: Int = height / 2 - 5
-        var c: Int = width / 2 - 20
+        p + save
 
-        var ret = "" //+ clrAll
-        ret += save + ""
-        ret += pos(r++, c) + "                                            ".fmt(*dlgTxt)
-        ret += pos(r++, c) + " +----(Press Ctrl-C to exit)--------------+ ".fmt(*dlgTxt)
-        ret += pos(r++, c) + " |                                        | ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r++, c) + " |                                        | ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r++, c) + " |                                        | ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r++, c) + " |                                        | ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r++, c) + " |                                        | ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r++, c) + " |                                        | ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r++, c) + " +----------------------------------------+ ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r++, c) + "                                            ".fmt(*dlgTxt) + " ".fmt(*shdw)
-        ret += pos(r, c + 1) + "                                            ".fmt(*shdw)
+        p.center(-20, -5)
+        p.block(40, 10, *dlgTxt)
 
-        r = height / 2 - 5 + 3
-        c = width / 2 - 20 + 3
-        ret += pos(r++, c) + "Window: ".fmt(*dlgTxt) + sizeStr.fmt(green.fgBr, blue.bg)
-        ret += pos(r++, c) + "Length: ".fmt(*dlgTxt) + lenStr.fmt(*dlgTxt)
-        ret += pos(r++, c) + "Input:  ".fmt(*dlgTxt) + "\"$inLine\"".fmt(bold, red.fgBr, blue.bg)
-        ret += pos(r++, c) + "Key:    ".fmt(*dlgTxt) + key.fmt(*dlgTxt)
-        ret += pos(r, c)
-        ret += restore + ""
+        p.offset(2, 2)
+        p++ + fmt(*dlgTxt)  + "Window: " + fmt() + fmt(green.fgBr, blue.bg)     + sizeStr   + fmt()
+        p++ + fmt(*dlgTxt)  + "Length: " + fmt() + fmt(*dlgTxt)                 + lenStr    + fmt()
+        p++ + fmt(*dlgTxt)  + "Input:  " + fmt() + fmt(bold, red.fgBr, blue.bg) + inLine    + fmt()
+        p++ + fmt(*dlgTxt)  + "Key:    " + fmt() + fmt(*dlgTxt)                 + keyName   + fmt()
 
-        return ret
+        p + restore
+
+        return true
     }
 }
 
