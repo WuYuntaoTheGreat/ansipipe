@@ -85,13 +85,17 @@ read_raw_keys () {
     trap - SIGALRM
 
     # Send to pipe
-    echo "$(stty size):$key" > $FIFO_IN
+    echo "$(stty size):$key" # > $FIFO_IN
 }
 
 #####################
 # Main loop
 #####################
-while :; do
-    read_raw_keys
-done
+main () {
+    while :; do
+        read_raw_keys
+    done
+}
+
+main > $FIFO_IN
 
