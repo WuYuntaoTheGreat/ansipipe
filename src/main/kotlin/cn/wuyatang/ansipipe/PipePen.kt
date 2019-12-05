@@ -1,5 +1,6 @@
 package cn.wuyatang.ansipipe
 
+import cn.wuyatang.ansipipe.Ansi.Feature
 import cn.wuyatang.ansipipe.Ansi.Control
 import cn.wuyatang.ansipipe.Ansi.Control.*
 import cn.wuyatang.ansipipe.Ansi.Color.*
@@ -48,6 +49,11 @@ class PipePen(val w: Int, val h: Int) {
         return this
     }
 
+    fun d(n: Int = 1) : PipePen = offset(offY =  n)
+    fun u(n: Int = 1) : PipePen = offset(offY = -n)
+    fun l(n: Int = 1) : PipePen = offset(offX = -n)
+    fun r(n: Int = 1) : PipePen = offset(offX =  n)
+
     fun offset(offX: Int = 0, offY: Int = 0): PipePen {
         this.x = x + offX
         this.y = y + offY
@@ -58,12 +64,6 @@ class PipePen(val w: Int, val h: Int) {
     fun center(offX: Int = 0, offY: Int = 0): PipePen {
         this.x = cx + offX
         this.y = cy + offY
-        this + pos(y, x)
-        return this
-    }
-
-    operator fun inc(): PipePen {
-        y++
         this + pos(y, x)
         return this
     }
@@ -79,62 +79,66 @@ class PipePen(val w: Int, val h: Int) {
     }
 
     companion object {
-        val DEFAULT_BORDERS_SHADOW = """
+        val BLOCK_BORDERS_SHADOW = """
             +-+.
             |.|#
             +-+#
             .###
-        """.trimIndent()
+        """.trimIndent().replace('.', ' ')
 
-        val DEFAULT_BLANK = """
+        val BLOCK_BLANK = """
             ....
             ....
             ....
             ....
-        """.trimIndent()
+        """.trimIndent().replace('.', ' ')
 
-        val DEFAULT_BLANK_SHADOW = """
+        val BLOCK_BLANK_SHADOW = """
             ....
             ...#
             ...#
             .###
-        """.trimIndent()
+        """.trimIndent().replace('.', ' ')
     }
 
-    fun block(w: Int, h: Int, vararg features: Ansi.Feature) {
-        block(w, h, DEFAULT_BORDERS_SHADOW, *features)
-    }
+    /*
+     * Convenient function.
+     */
+    fun block(w: Int, h: Int, vararg features: Feature): PipePen = block(w, h, fea(*features), BLOCK_BORDERS_SHADOW)
+    fun block(w: Int, h: Int, border: String, vararg features: Feature) = block(w, h, fea(*features), border)
 
     /**
      * Draw a button
      * @param w The width of this block
      * @param h The height of this block
      * @param borders If true draw a text border
-     * @param features The features used to render the block
+     * @param feature The features used to render the block
+     * @return this pen
      */
-    fun block(w: Int, h: Int,
-              borders: String ,
-              vararg features: Ansi.Feature
-    ){
-
+    fun block(w: Int,
+              h: Int,
+              feature: fea,
+              borders: String = BLOCK_BORDERS_SHADOW ): PipePen {
         val walls = borders.split("\n").map { it.toCharArray().map{ c -> c.toString() }.toList() }
         (0 until h).forEach { r ->
-            val wall = when(r){
+            val wl = when(r){
                 0       -> walls[0]
                 h - 1   -> walls[2]
                 else    -> walls[1]
             }
-            val line = (wall[0] + wall[1].repeat(w - 2) + wall[2]).replace('.', ' ')
+            val line = (wl[0] + wl[1].repeat(w - 2) + wl[2])
             this + pos(y + r, x)
-            this + fmt(*features) + line + fmt()
-            if(wall[3] == "#"){
-                this + fmt(black.bgBr) + " " + fmt()
+            this + feature + line + fea()
+            if(wl[3] == "#"){
+                this + fea(black.bgBr) + " " + fea()
             }
         }
-        if(walls[3][1] == "#") {
+        val wl = walls[3]
+        if(wl.contains("#")){
             this + pos(y + h, x + 1)
-            this + fmt(black.bgBr) + " ".repeat(w) + fmt()
+            this + fea(black.bgBr) + " ".repeat(w) + fea()
         }
+        return this
     }
 }
 

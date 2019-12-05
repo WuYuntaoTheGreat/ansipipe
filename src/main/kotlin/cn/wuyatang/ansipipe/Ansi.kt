@@ -64,19 +64,28 @@ interface Ansi {
         class col       (n: Int = 1): Control("$ESC[${n}G")
         class pos       (row: Int, col: Int): Control("$ESC[${row};${col}H")
 
-        object clrDown      : Control("$ESC[0J")
-        object clrUp        : Control("$ESC[1J")
-        object clrAll       : Control("$ESC[2J")
-        object clrFull      : Control("$ESC[3J")
+        object clrDown  : Control("$ESC[0J")
+        object clrUp    : Control("$ESC[1J")
+        object clrAll   : Control("$ESC[2J")
+        object clrFull  : Control("$ESC[3J")
 
-        object clrLRight    : Control("$ESC[0K")
-        object clrLLeft     : Control("$ESC[1K")
-        object clrLine      : Control("$ESC[2K")
+        object clrLRight: Control("$ESC[0K")
+        object clrLLeft : Control("$ESC[1K")
+        object clrLine  : Control("$ESC[2K")
 
-        object save         : Control("${ESC}7") // Control("$ESC[s")
-        object restore      : Control("${ESC}8") // Control("$ESC[u")
+        object save     : Control("${ESC}7") // Control("$ESC[s")
+        object restore  : Control("${ESC}8") // Control("$ESC[u")
 
-        class fmt(vararg features: Feature): Control("${ESC}[${ featuresToString(*features) }m")
+        class fea(vararg features: Feature): Control("${ESC}[${ featuresToString(*features) }m") {
+            /**
+             * Format a string.
+             * @param b closure inside the format block.
+             * @return The formatted string.
+             */
+            operator fun invoke (b: () -> String ): String {
+                return this + b() + fea()
+            }
+        }
     }
 
     /**
@@ -121,56 +130,53 @@ interface Ansi {
         class AltKey(val ch: Char) : Key("Alt-$ch")
 
         companion object {
-            fun parseKey(line: String): Key? {
-                Regex("$ESC\\[(.+)").matchEntire(line)
-                    ?.let { ret ->
-                        val key = ret.groups[1]!!.value
-                        when (key) {
-                            "1~", "7~", "H" -> return Home
-                            "2~"            -> return Insert
-                            "3~"            -> return Delete
+            fun parse(line: String): Key? {
+                Regex("$ESC\\[(.+)").matchEntire(line)?.let { ret ->
+                    val key = ret.groups[1]!!.value
+                    when (key) {
+                        "1~", "7~", "H" -> return Home
+                        "2~"            -> return Insert
+                        "3~"            -> return Delete
 
-                            "4~", "8~", "F" -> return End
-                            "5~"            -> return PgUp
-                            "6~"            -> return PgDn
+                        "4~", "8~", "F" -> return End
+                        "5~"            -> return PgUp
+                        "6~"            -> return PgDn
 
-                            "10~"           -> return F0
+                        "10~"           -> return F0
 
-                            "11~", "1P"     -> return F1
-                            "12~", "1Q"     -> return F2
-                            "13~", "1R"     -> return F3
-                            "14~", "1S"     -> return F4
+                        "11~", "1P"     -> return F1
+                        "12~", "1Q"     -> return F2
+                        "13~", "1R"     -> return F3
+                        "14~", "1S"     -> return F4
 
-                            "15~"           -> return F5
-                            "17~"           -> return F6
-                            "18~"           -> return F7
-                            "19~"           -> return F8
-                            "20~"           -> return F9
-                            "21~"           -> return F10
-                            "24~"           -> return F12
+                        "15~"           -> return F5
+                        "17~"           -> return F6
+                        "18~"           -> return F7
+                        "19~"           -> return F8
+                        "20~"           -> return F9
+                        "21~"           -> return F10
+                        "24~"           -> return F12
 
-                            "A"             -> return Up
-                            "B"             -> return Down
-                            "C"             -> return Right
-                            "D"             -> return Left
-                            else -> {}
-                        }
+                        "A"             -> return Up
+                        "B"             -> return Down
+                        "C"             -> return Right
+                        "D"             -> return Left
+                        else -> {}
                     }
-                Regex("$ESC(..)").matchEntire(line)
-                    ?.let { ret ->
-                        val key = ret.groups[1]!!.value
-                        when (key) {
-                            "OP"            -> return F1
-                            "OQ"            -> return F2
-                            "OR"            -> return F3
-                            "OS"            -> return F4
-                            else -> {}
-                        }
+                }
+                Regex("$ESC(..)").matchEntire(line)?.let { ret ->
+                    val key = ret.groups[1]!!.value
+                    when (key) {
+                        "OP"            -> return F1
+                        "OQ"            -> return F2
+                        "OR"            -> return F3
+                        "OS"            -> return F4
+                        else -> {}
                     }
-                Regex("$ESC(.)").matchEntire(line)
-                    ?.let { ret ->
-                        return AltKey(ret.groups[1]!!.value[0])
-                    }
+                }
+                Regex("$ESC(.)").matchEntire(line)?.let { ret ->
+                    return AltKey(ret.groups[1]!!.value[0])
+                }
 
                 return when (line) {
                     "\u007F"    -> BS
@@ -184,28 +190,5 @@ interface Ansi {
             }
         }
     }
-
-//    /**
-//     * Format a string with color and features.
-//     */
-//    fun formatFeatures(origin: String, vararg features: Feature): String {
-//        val fstr = features
-//            .map {
-//                it.v
-//            }
-//            .sorted()
-//            .map {
-//                it.toString()
-//            }
-//            .joinToString(";")
-//        return "$ESC[${fstr}m${origin}$ESC[0m"
-//    }
-//
-//    /**
-//     *
-//     */
-//    fun String.fmt(vararg features: Feature): String {
-//        return formatFeatures(this, *features)
-//    }
 }
 

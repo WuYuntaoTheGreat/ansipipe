@@ -33,7 +33,7 @@ abstract class PipeProcessor: Ansi {
             val h   = mt.groups[1]!!.value.toInt()
             val w   = mt.groups[2]!!.value.toInt()
             val raw = mt.groups[3]!!.value
-            val key = Key.parseKey(raw)
+            val key = Key.parse(raw)
 
             if(!process(raw, key, PipePen(w, h))){
                 break

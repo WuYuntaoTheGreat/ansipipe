@@ -24,7 +24,6 @@ class Demo: PipeProcessor() {
      * @return True to continue loop, false to break.
      */
     override fun process(raw: String, key: Key?, pen: PipePen): Boolean {
-        var p = pen
         val sizeStr = "(${pen.w}, ${pen.h}) "
         val lenStr  = raw.length.toString()
         val keyName = key?.name ?: ""
@@ -38,20 +37,22 @@ class Demo: PipeProcessor() {
             .joinToString("")
             .let { "\"$it\"" }
 
-        val dlgTxt = arrayOf(white.fgBr, blue.bg)
+        val dlgTxt = fea(white.fgBr, blue.bg)
+        val grnTxt = fea(green.fgBr, blue.bg)
+        val redTxt = fea(bold, red.fgBr, blue.bg)
 
-        p + save
+        pen + save
 
-        p.center(-20, -5)
-        p.block(40, 10, *dlgTxt)
+        pen.center(-20, -5)
+        pen.block(40, 10, dlgTxt)
 
-        p.offset(2, 2)
-        p++ + fmt(*dlgTxt)  + "Window: " + fmt() + fmt(green.fgBr, blue.bg)     + sizeStr   + fmt()
-        p++ + fmt(*dlgTxt)  + "Length: " + fmt() + fmt(*dlgTxt)                 + lenStr    + fmt()
-        p++ + fmt(*dlgTxt)  + "Input:  " + fmt() + fmt(bold, red.fgBr, blue.bg) + inLine    + fmt()
-        p++ + fmt(*dlgTxt)  + "Key:    " + fmt() + fmt(*dlgTxt)                 + keyName   + fmt()
+        pen.offset(2, 1)
+        pen.d() + dlgTxt { "Window: " } + grnTxt { sizeStr  }
+        pen.d() + dlgTxt { "Length: " } + dlgTxt { lenStr   }
+        pen.d() + dlgTxt { "Input:  " } + redTxt { inLine   }
+        pen.d() + dlgTxt { "Key:    " } + dlgTxt { keyName  }
 
-        p + restore
+        pen + restore
 
         return true
     }
