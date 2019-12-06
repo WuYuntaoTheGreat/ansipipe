@@ -25,12 +25,12 @@ This solution includes 2 parts:
 1. A shell script, responsible to read raw key press.
 1. A Kotlin program, implementing the main feature.
 
-These 2 parts are connected by a named pipe (__FIFO__)
+These 2 parts are connected by a pipe
 
 ```
 +---------+       +--------------+      +------+      +-----------------+
 |         | ----> |    Script    | ---> | Pipe | ---> |(stdin)          |
-|         |       |(read raw key)|      |(FIFO)|      |                 |
+|         |       |(read raw key)|      |      |      |                 |
 | Console |       +--------------+      +------+      | Kotlin Program  |
 |         |                                           |                 |
 |         | <---------------------------------------- |(stdout)         |

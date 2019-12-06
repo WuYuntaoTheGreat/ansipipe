@@ -18,6 +18,10 @@ interface Ansi {
                 .joinToString(";")
     }
 
+    /*
+     * Output
+     */
+
     sealed class Feature(val v: Int) {
         object reset       : Feature(0)
         object bold        : Feature(1)
@@ -75,6 +79,7 @@ interface Ansi {
 
         object save     : Control("${ESC}7") // Control("$ESC[s")
         object restore  : Control("${ESC}8") // Control("$ESC[u")
+
 
         class fea(vararg features: Feature): Control("${ESC}[${ featuresToString(*features) }m") {
             /**
