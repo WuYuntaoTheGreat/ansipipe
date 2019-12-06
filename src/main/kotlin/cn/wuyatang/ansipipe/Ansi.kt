@@ -189,7 +189,8 @@ interface Ansi {
                     "\n"        -> Return
                     "<CR>"      -> Return
                     "$ESC"      -> Esc
-
+                    "<SP>"      -> Normal(' ')
+                    "<TAB>"     -> Normal('\t')
                     else -> Normal(line[0])
                 }
             }

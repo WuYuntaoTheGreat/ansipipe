@@ -36,10 +36,10 @@ read_raw_keys () {
 
     # Trap the alarm char input.
     # This will cause error.
-    trap "" SIGALRM
+    #trap "" SIGALRM
 
     read -s -${READ_N}1 -t 2 K1
-    [[ $K1 != "" ]] || return
+    [[ -z $K1 ]] && return
     read -s -${READ_N}2 -t 0.001 K2
     read -s -${READ_N}1 -t 0.001 K3
 
@@ -47,27 +47,36 @@ read_raw_keys () {
 
 
     if [[ $key =~ $'\n' ]]; then
-        # Convert carriage return
         key="<CR>"
     fi
 
+    case "$key" in
+        " ")
+            key="<SP>"
+            ;;
+        #\t)
+        #    key="<TAB>"
+        #    ;;
+    esac
+
     # Release trap.
-    trap - SIGALRM
+    #trap - SIGALRM
 
     # Send to pipe
-    echo $key
+    echo "$key"
 }
 
 #
 # Main loop
 #
 main () {
-    echo "<size $(stty size)>"
     trap 'echo "<size $(stty size)>"' SIGWINCH
+    echo "<size $(stty size)>"
+    echo "<CR>"
     while :; do
         read_raw_keys
     done
 }
 
-main #| $COMMAND
+main | $COMMAND
 

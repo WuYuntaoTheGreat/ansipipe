@@ -1,12 +1,15 @@
 package cn.wuyatang.ansipipe
 
 import cn.wuyatang.ansipipe.Ansi.Key
+import java.lang.Exception
 
 /**
  * This interface defines a processor of Pipe.
  * The process will work tightly with the shell script.
  */
 abstract class PipeProcessor: Ansi {
+    val pen = PipePen()
+
     /**
      * Handle one loop of pipe process.
      * This function will:
@@ -25,17 +28,22 @@ abstract class PipeProcessor: Ansi {
      * Loop to read input from the string.
      */
     fun loop(){
-        val inputReg = Regex("([0-9]+) +([0-9]+) *:(.*)")
+        val inputReg = Regex("<size ([0-9]+) ([0-9]+)>")
         while(true){
-            val input = readLine() ?: continue
-            val mt = inputReg.matchEntire(input) ?: continue
+            val raw = readLine() ?: continue
 
-            val h   = mt.groups[1]!!.value.toInt()
-            val w   = mt.groups[2]!!.value.toInt()
-            val raw = mt.groups[3]!!.value
-            val key = Key.parse(raw)
+            if(inputReg.matchEntire(raw)?.let { mt ->
+                    pen.h = mt.groups[1]!!.value.toInt()
+                    pen.w = mt.groups[2]!!.value.toInt()
+                    true
+            } == true) continue
 
-            if(!process(raw, key, PipePen(w, h))){
+            val key = try{
+                Key.parse(raw)
+            } catch (e: Exception){
+                null
+            }
+            if(!process(raw, key, pen)){
                 break
             }
         }

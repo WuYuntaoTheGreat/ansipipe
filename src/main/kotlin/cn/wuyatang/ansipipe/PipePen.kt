@@ -8,10 +8,11 @@ import java.util.*
 
 /**
  * The pen object.
- * @param w The width of the screen
- * @param h The height of the screen
  */
-class PipePen(val w: Int, val h: Int) {
+class PipePen() {
+    var w: Int = 40
+    var h: Int = 20
+
     val cx: Int get() = w / 2
     val cy: Int get() = h / 2
 
