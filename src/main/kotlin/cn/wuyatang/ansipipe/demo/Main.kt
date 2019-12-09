@@ -4,12 +4,32 @@ package cn.wuyatang.ansipipe.demo
 
 import cn.wuyatang.ansipipe.Ansi.Color.*
 import cn.wuyatang.ansipipe.Ansi.Control.*
-import cn.wuyatang.ansipipe.Ansi.Feature.bold
+import cn.wuyatang.ansipipe.Ansi.Feature.*
 import cn.wuyatang.ansipipe.Ansi.Key
-import cn.wuyatang.ansipipe.PipePen
 import cn.wuyatang.ansipipe.PipeProcessor
+import cn.wuyatang.ansipipe.ui.AnsiSequence
+import cn.wuyatang.ansipipe.ui.Window
 
-class Demo: PipeProcessor() {
+/**
+ * The Demo processor.
+ */
+class Demo: PipeProcessor {
+    var screenWidth:  Int = 0
+    var screenHeight: Int = 0
+
+    /**
+     * Handle resize message from script.
+     *
+     * @param width The screen width in chars.
+     * @param height The screen height in chars.
+     *
+     * @return True to continue loop, false to break.
+     */
+    override fun resized(width: Int, height: Int): Boolean {
+        screenWidth  = width
+        screenHeight = height
+        return true
+    }
 
     /**
      * Handle one loop of pipe process.
@@ -19,12 +39,11 @@ class Demo: PipeProcessor() {
      *
      * @param raw The raw input string from the console.
      * @param key The input key from the console.
-     * @param pen The PipePen object.
      *
      * @return True to continue loop, false to break.
      */
-    override fun process(raw: String, key: Key?, pen: PipePen): Boolean {
-        val sizeStr = "(${pen.w}, ${pen.h}) "
+    override fun process(raw: String, key: Key?): Boolean {
+        val sizeStr = "(${screenWidth}, ${screenHeight}) "
         val lenStr  = raw.length.toString()
         val keyName = key?.name ?: ""
         val inLine  = raw
@@ -37,23 +56,37 @@ class Demo: PipeProcessor() {
             .joinToString("")
             .let { "\"$it\"" }
 
-        val dlgTxt = fea(white.fgBr, blue.bg)
-        val grnTxt = fea(green.fgBr, blue.bg)
-        val redTxt = fea(bold, red.fgBr, blue.bg)
+        val dlgTxt = Format(White.fgBr)
+        val grnTxt = Format(Green.fgBr)
+        val redTxt = Format(Bold, Red.fgBr)
 
-        pen + save
+        val content = AnsiSequence()
+        content + dlgTxt + "Window: " + grnTxt + sizeStr    + "\n"
+        content + dlgTxt + "Length: " + dlgTxt + lenStr     + "\n"
+        content + dlgTxt + "Input:  " + redTxt + inLine     + "\n"
+        content + dlgTxt + "Key:    " + grnTxt + keyName    + "\n"
 
-        pen.center(-20, -5)
-        pen.block(40, 10, dlgTxt)
+        val window = Window(20, 20, 40, 10)
 
-        pen.offset(2, 1)
-        pen.d() + dlgTxt { "Window: " } + grnTxt { sizeStr  }
-        pen.d() + dlgTxt { "Length: " } + dlgTxt { lenStr   }
-        pen.d() + dlgTxt { "Input:  " } + redTxt { inLine   }
-        pen.d() + dlgTxt { "Key:    " } + dlgTxt { keyName  }
+        print(Save)
 
-        pen + restore
+        window.render()
+        window.render(content)
 
+//        pen + save
+//
+//        pen.center(-20, -5)
+//        pen.block(40, 10, dlgTxt)
+//
+//        pen.offset(2, 1)
+//        pen.d() + dlgTxt { "Window: " } + grnTxt { sizeStr  }
+//        pen.d() + dlgTxt { "Length: " } + dlgTxt { lenStr   }
+//        pen.d() + dlgTxt { "Input:  " } + redTxt { inLine   }
+//        pen.d() + dlgTxt { "Key:    " } + dlgTxt { keyName  }
+//
+//        pen + restore
+
+        print(Restore)
         return true
     }
 }

@@ -1,4 +1,4 @@
-@file:Suppress("ClassName", "unused", "EnumEntryName")
+@file:Suppress("unused", "CanBeParameter")
 
 package cn.wuyatang.ansipipe
 
@@ -8,88 +8,138 @@ package cn.wuyatang.ansipipe
 interface Ansi {
     companion object {
         const val ESC = '\u001B'
-
-        private fun featuresToString(vararg features: Feature): String =
-            features
-                .map { it.v }
-                .sorted()
-                .map { it.toString() }
-                .let { if(it.isEmpty()) listOf("0") else it }
-                .joinToString(";")
+//        const val ESC = 'E'
     }
 
     /*
      * Output
      */
-
-    sealed class Feature(val v: Int) {
-        object reset       : Feature(0)
-        object bold        : Feature(1)
-        object faint       : Feature(2)
-        object italic      : Feature(3)
-        object underline   : Feature(4)
-        object blink       : Feature(5)
-
-        class raw(v: Int): Feature(v)
+    enum class Color(private val c: Int){
+        Black   (0),
+        Red     (1),
+        Green   (2),
+        Brown   (3),
+        Blue    (4),
+        Magenta (5),
+        Cyan    (6),
+        White   (7),
+        ;
+        val fg      = Feature.Raw(c + 30)
+        val bg      = Feature.Raw(c + 40)
+        val fgBr    = Feature.Raw(c + 90)
+        val bgBr    = Feature.Raw(c + 100)
     }
 
-    enum class Color(private val c: Int){
-        black   (0),
-        red     (1),
-        green   (2),
-        brown   (3),
-        blue    (4),
-        magenta (5),
-        cyan    (6),
-        white   (7),
-        ;
-        val fg      = Feature.raw(c + 30)
-        val bg      = Feature.raw(c + 40)
-        val fgBr    = Feature.raw(c + 90)
-        val bgBr    = Feature.raw(c + 100)
+    sealed class Feature(val v: Int) {
+        object Reset       : Feature(0)
+        object Bold        : Feature(1)
+        object Faint       : Feature(2)
+        object Italic      : Feature(3)
+        object Underline   : Feature(4)
+        object Blink       : Feature(5)
+
+        class Raw(v: Int): Feature(v)
     }
 
     /**
      * The ANSI control
      */
-    sealed class Control(val v: String) {
+    sealed class Control(open val v: String): Comparable<Control> {
+
+        override fun compareTo(other: Control): Int = v.compareTo(other.v)
+
         override fun toString(): String = v
 
-        operator fun plus(next: String): String {
-            return v + next
-        }
+        fun render() = print(v)
 
-        class up        (n: Int = 1): Control("$ESC[${n}A")
-        class down      (n: Int = 1): Control("$ESC[${n}B")
-        class right     (n: Int = 1): Control("$ESC[${n}C")
-        class left      (n: Int = 1): Control("$ESC[${n}D")
-        class lineDown  (n: Int = 1): Control("$ESC[${n}E")
-        class lineUp    (n: Int = 1): Control("$ESC[${n}F")
-        class col       (n: Int = 1): Control("$ESC[${n}G")
-        class pos       (row: Int, col: Int): Control("$ESC[${row};${col}H")
+        class Up        (n: Int = 1): Control("$ESC[${n}A")
+        class Down      (n: Int = 1): Control("$ESC[${n}B")
+        class Right     (n: Int = 1): Control("$ESC[${n}C")
+        class Left      (n: Int = 1): Control("$ESC[${n}D")
+        class LineDown  (n: Int = 1): Control("$ESC[${n}E")
+        class LineUp    (n: Int = 1): Control("$ESC[${n}F")
+        class Col       (n: Int = 1): Control("$ESC[${n}G")
+        class Pos       (row: Int, col: Int): Control("$ESC[${row};${col}H")
 
-        object clrDown  : Control("$ESC[0J")
-        object clrUp    : Control("$ESC[1J")
-        object clrAll   : Control("$ESC[2J")
-        object clrFull  : Control("$ESC[3J")
+        object ClearDown    : Control("$ESC[0J")
+        object ClearUp      : Control("$ESC[1J")
+        object ClearAll     : Control("$ESC[2J")
+        object ClearFull    : Control("$ESC[3J")
 
-        object clrLRight: Control("$ESC[0K")
-        object clrLLeft : Control("$ESC[1K")
-        object clrLine  : Control("$ESC[2K")
+        object ClearLRight  : Control("$ESC[0K")
+        object ClearLLeft   : Control("$ESC[1K")
+        object ClearLine    : Control("$ESC[2K")
 
-        object save     : Control("${ESC}7") // Control("$ESC[s")
-        object restore  : Control("${ESC}8") // Control("$ESC[u")
+        object Save         : Control("${ESC}7") // Control("$ESC[s")
+        object Restore      : Control("${ESC}8") // Control("$ESC[u")
 
+        /**
+         * The character color and style control.
+         * @param st The style feature.
+         * @param fg The foreground feature.
+         * @param bg The background feature.
+         */
+        class Format(val st: Feature?,
+                     val fg: Feature?,
+                     val bg: Feature?): Control(
+            listOfNotNull(st, fg, bg)
+                .map { it.v }
+                .joinToString(";")
+                .let { if (it.isEmpty()) "0" else it }
+                .let { "$ESC[${it}m"} ) {
 
-        class fea(vararg features: Feature): Control("${ESC}[${ featuresToString(*features) }m") {
-            /**
-             * Format a string.
-             * @param b closure inside the format block.
-             * @return The formatted string.
-             */
-            operator fun invoke (b: () -> String ): String {
-                return this + b() + fea()
+            companion object {
+                val reset = Format()
             }
+
+            /**
+             * True if this is a format reset.
+             */
+            val isReset: Boolean get() = st == Feature.Reset
+
+            /*
+             * Private constructor to server vararg constructor.
+             * @param salt to avoid constructor signature duplication.
+             */
+            private constructor(salt: Int, tuple: Array<Feature?>): this(tuple[0], tuple[1], tuple[2])
+
+            /**
+             *
+             * @param features variable length parameter, each represent a color or style. If [Feature.Reset] is
+             * present as parameter, other colors or styles will be ignored, and this control will become Reset control
+             */
+            constructor(vararg features: Feature): this( 1,
+                features.let { vag ->
+                    if(vag.isEmpty() || vag.contains(Feature.Reset)){
+                        return@let arrayOf<Feature?>(Feature.Reset, null, null)
+                    }
+                    val ret = arrayOf<Feature?>(null, null, null)
+                    vag.forEach {
+                        when (it.v) {
+                            in 1..10                -> ret[0] = it
+                            in 30..39, in 90..99    -> ret[1] = it
+                            in 40..49, in 100..109  -> ret[2] = it
+                        }
+                    }
+                    return@let ret
+                }
+            )
+
+            fun clone(): Format = Format(
+                st = this.st,
+                fg = this.fg,
+                bg = this.bg )
+
+            fun merge(next: Format): Format = Format(
+                st = next.st ?: this.st,
+                fg = next.fg ?: this.fg,
+                bg = next.bg ?: this.bg )
+
+            fun extend(origin: Format?): Format {
+                return origin?.merge(this) ?: this
+            }
+
+
         }
     }
 
