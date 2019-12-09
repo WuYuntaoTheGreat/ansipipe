@@ -36,13 +36,19 @@ class AnsiSequence() {
      */
     fun append(string: String): AnsiSequence {
         string.split('\n').forEachIndexed { r, str ->
-            if(r > 0 || lines.size == 0){
+            val line = if(r > 0 || lines.size == 0){
                 mutableListOf<FormattedString>().apply {
                     lines.add(this)
                 }
             } else {
                 lines.last()
-            }.add(FormattedString(currentFormat, str))
+            }
+
+            if(line.lastOrNull()?.format?.equals(currentFormat) == true) {
+                line[line.size - 1] = FormattedString(currentFormat, line.last().string + str)
+            } else {
+                line.add(FormattedString(currentFormat, str))
+            }
         }
         return this
     }
@@ -86,7 +92,7 @@ class AnsiSequence() {
         val rMax = cropRect?.endY ?: height
 
         for(r in rMin..rMax){
-            print(at.control.v)
+            at.control.render()
 
             val line = lines.getOrNull(r) ?: continue
 
@@ -106,7 +112,7 @@ class AnsiSequence() {
                 c += section.string.length
             }
 
-            println(Format.reset)
+            Format.reset.render()
             at.offset(dy = 1)
         }
     }
