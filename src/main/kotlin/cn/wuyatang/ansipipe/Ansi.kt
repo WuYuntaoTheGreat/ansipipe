@@ -8,7 +8,7 @@ package cn.wuyatang.ansipipe
 interface Ansi {
     companion object {
         const val ESC = '\u001B'
-//        const val ESC = 'E'
+//        const val ESC = 'e'
     }
 
     /*
@@ -130,13 +130,28 @@ interface Ansi {
                 fg = this.fg,
                 bg = this.bg )
 
-            fun merge(next: Format): Format = Format(
-                st = next.st ?: this.st,
-                fg = next.fg ?: this.fg,
-                bg = next.bg ?: this.bg )
+            /**
+             * Merge to another format.
+             * > Operation: next overrides this
+             */
+            fun merge(next: Format?): Format = when {
+                next == null    -> this
+                next.isReset    -> next
+                else            -> Format(
+                    st = next.st ?: this.st,
+                    fg = next.fg ?: this.fg,
+                    bg = next.bg ?: this.bg
+                )
+            }
 
-            fun extend(origin: Format?): Format {
-                return origin?.merge(this) ?: this
+            /**
+             * Extend another format.
+             * > Operation: this overrides origin
+             */
+            fun extend(origin: Format?): Format = when {
+                origin == null  -> this
+                origin.isReset  -> this
+                else            -> origin.merge(this)
             }
 
 

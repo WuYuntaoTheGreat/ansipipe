@@ -1,8 +1,10 @@
 package cn.wuyatang.ansipipe.ui
 
+import cn.wuyatang.ansipipe.Ansi
 import cn.wuyatang.ansipipe.Ansi.Color.*
 import cn.wuyatang.ansipipe.Ansi.Control.*
 import cn.wuyatang.ansipipe.Ansi.Feature.*
+import cn.wuyatang.ansipipe.PipeProcessor
 
 
 /**
@@ -23,27 +25,56 @@ open class Window(
     val shadowStyle: String = BORDER_SLIM,
     val bgFormat: Format? = Format(Bold, White.fgBr, Blue.bgBr),
     val shFormat: Format? = Format(Black.fg, Black.bgBr)
-) {
+): PipeProcessor, AnsiParagraph() {
+    /**
+     * Handle one loop of pipe process.
+     * This function will:
+     * 1. Read from the console 1 char.
+     * 2. Then output to the console.
+     *
+     * @param raw The raw input string from the console.
+     * @param key The input key from the console.
+     *
+     * @return True to continue loop, false to break.
+     */
+    override fun process(raw: String, key: Ansi.Key?): Boolean {
+        // Doing nothing.
+        return true
+    }
+
+    /**
+     * Handle resize message from script.
+     *
+     * @param width The screen width in chars.
+     * @param height The screen height in chars.
+     *
+     * @return True to continue loop, false to break.
+     */
+    override fun resized(width: Int, height: Int): Boolean {
+        // Doing nothing.
+        return true
+    }
+
     /**
      * Companion object
      */
     companion object {
+        val BORDER_SLIM = """
+            ┌─┐
+            │ │
+            └─┘
+        """.trimIndent()
+
         val BORDER_ASCII = """
             +-+
-            |.|
+            | |
             +-+
-        """.trimIndent().replace('.', ' ')
+        """.trimIndent()
 
         val BORDER_BLANK = """
             ...
             ...
             ...
-        """.trimIndent().replace('.', ' ')
-
-        val BORDER_SLIM = """
-            ┌─┐
-            │.│
-            └─┘
         """.trimIndent().replace('.', ' ')
     }
 
@@ -102,30 +133,31 @@ open class Window(
             set(value) {}
     }
 
-
     /**
      * Render this window.
      */
     fun render() {
+        // Render shadow
         if(shadowStyle.isNotEmpty()){
             val shRect = outer.clone().apply{ offset(1, 1) }
-            render(shRect, shadowStyle, shFormat)
+            renderRect(shRect, shadowStyle, shFormat)
         }
-        render(outer, borderStyle, bgFormat)
-    }
 
-    /**
-     * Render an AnsiSequence inside this window.
-     */
-    fun render(content: AnsiSequence){
+        // Render background
+        renderRect(outer, borderStyle, bgFormat)
+
+        // Render contents
         val cropRect = inner.clone().apply { set(0, 0) }
-        content.render(inner, bgFormat, cropRect)
+        render(inner, bgFormat, cropRect)
     }
 
     /**
      * Render a rectangle
+     * @param rect The outer rectangle to render
+     * @param style The background style, possible values are [BORDER_BLANK], [BORDER_SLIM], [BORDER_ASCII] ... etc.
+     * @param format The background format
      */
-    fun render(rect: Rect, style: String, format: Format?) {
+    fun renderRect(rect: Rect, style: String, format: Format?) {
         val walls = style
             .split('\n')
             .map {
@@ -146,8 +178,7 @@ open class Window(
                 }
             }
 
-        val ret = AnsiSequence()
-        ret + format
+        val p = AnsiParagraph()
         (0 until rect.h).forEach { r ->
             val wl = when (r) {
                 0           -> walls[0]
@@ -155,11 +186,10 @@ open class Window(
                 else        -> walls[1]
             }
 
-            ret + wl[0] + wl[1].repeat(rect.w - 2) + wl[2] + "\n"
+            p.newLine() + format + wl[0] + wl[1].repeat(rect.w - 2) + wl[2]
         }
-        ret + Format.reset
 
-        ret.render(rect)
+        p.render(rect)
     }
 }
 

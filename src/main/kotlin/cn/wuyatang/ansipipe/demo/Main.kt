@@ -7,7 +7,6 @@ import cn.wuyatang.ansipipe.Ansi.Control.*
 import cn.wuyatang.ansipipe.Ansi.Feature.*
 import cn.wuyatang.ansipipe.Ansi.Key
 import cn.wuyatang.ansipipe.PipeProcessor
-import cn.wuyatang.ansipipe.ui.AnsiSequence
 import cn.wuyatang.ansipipe.ui.Window
 
 /**
@@ -60,33 +59,16 @@ class Demo: PipeProcessor {
         val grnTxt = Format(Green.fgBr)
         val redTxt = Format(Bold, Red.fgBr)
 
-        val content = AnsiSequence()
-        content + dlgTxt + "Window: " + grnTxt + sizeStr    + "\n"
-        content + dlgTxt + "Length: " + dlgTxt + lenStr     + "\n"
-        content + dlgTxt + "Input:  " + redTxt + inLine     + "\n"
-        content + dlgTxt + "Key:    " + grnTxt + keyName    + "\n"
-
         val window = Window(20, 20, 40, 10)
 
-        print(Save)
+        window.nl() + dlgTxt + "Window: " + grnTxt + sizeStr
+        window.nl() + dlgTxt + "Length: " + dlgTxt + lenStr
+        window.nl() + dlgTxt + "Input:  " + redTxt + inLine
+        window.nl() + dlgTxt + "Key:    " + grnTxt + keyName
 
+        Save.render()
         window.render()
-        window.render(content)
-
-//        pen + save
-//
-//        pen.center(-20, -5)
-//        pen.block(40, 10, dlgTxt)
-//
-//        pen.offset(2, 1)
-//        pen.d() + dlgTxt { "Window: " } + grnTxt { sizeStr  }
-//        pen.d() + dlgTxt { "Length: " } + dlgTxt { lenStr   }
-//        pen.d() + dlgTxt { "Input:  " } + redTxt { inLine   }
-//        pen.d() + dlgTxt { "Key:    " } + dlgTxt { keyName  }
-//
-//        pen + restore
-
-        print(Restore)
+        Restore.render()
         return true
     }
 }
