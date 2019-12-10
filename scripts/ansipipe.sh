@@ -36,12 +36,12 @@ read_raw_keys () {
 
     # Trap the alarm char input.
     # This will cause error.
-    #trap "" SIGALRM
+    trap "" SIGALRM
 
-    read -s -${READ_N}1 -t 2 K1
+    read -s -r -${READ_N}1 -t 2 K1
     [[ -z $K1 ]] && return
-    read -s -${READ_N}2 -t 0.001 K2
-    read -s -${READ_N}1 -t 0.001 K3
+    read -s -r -${READ_N}2 -t 0.001 K2
+    read -s -r -${READ_N}1 -t 0.001 K3
 
     key="$K1$K2$K3"
 
@@ -54,13 +54,16 @@ read_raw_keys () {
         " ")
             key="<SP>"
             ;;
+        #'\')
+        #    key="<BSL>"
+        #    ;;
         #\t)
         #    key="<TAB>"
         #    ;;
     esac
 
     # Release trap.
-    #trap - SIGALRM
+    trap - SIGALRM
 
     # Send to pipe
     echo "$key"
