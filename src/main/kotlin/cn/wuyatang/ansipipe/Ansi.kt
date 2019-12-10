@@ -196,68 +196,81 @@ interface Ansi {
         object BS       : Key("<BS>")
         object Return   : Key("<CR>")
 
-        class Normal(val ch: Char) : Key(ch.toString())
-        class AltKey(val ch: Char) : Key("Alt-$ch")
+        class Normal (val ch: Char): Key(ch.toString())
+        class AltKey (val ch: Char): Key("Alt-$ch")
+        class CtrlKey(val ch: Char): Key("Ctrl-$ch")
 
         companion object {
             fun parse(line: String): Key? {
+
                 Regex("$ESC\\[(.+)").matchEntire(line)?.let { ret ->
                     val key = ret.groups[1]!!.value
                     when (key) {
                         "1~", "7~", "H" -> return Home
-                        "2~"            -> return Insert
-                        "3~"            -> return Delete
+                        "2~" -> return Insert
+                        "3~" -> return Delete
 
                         "4~", "8~", "F" -> return End
-                        "5~"            -> return PgUp
-                        "6~"            -> return PgDn
+                        "5~" -> return PgUp
+                        "6~" -> return PgDn
 
-                        "10~"           -> return F0
+                        "10~" -> return F0
 
-                        "11~", "1P"     -> return F1
-                        "12~", "1Q"     -> return F2
-                        "13~", "1R"     -> return F3
-                        "14~", "1S"     -> return F4
+                        "11~", "1P" -> return F1
+                        "12~", "1Q" -> return F2
+                        "13~", "1R" -> return F3
+                        "14~", "1S" -> return F4
 
-                        "15~"           -> return F5
-                        "17~"           -> return F6
-                        "18~"           -> return F7
-                        "19~"           -> return F8
-                        "20~"           -> return F9
-                        "21~"           -> return F10
-                        "24~"           -> return F12
+                        "15~" -> return F5
+                        "17~" -> return F6
+                        "18~" -> return F7
+                        "19~" -> return F8
+                        "20~" -> return F9
+                        "21~" -> return F10
+                        "24~" -> return F12
 
-                        "A"             -> return Up
-                        "B"             -> return Down
-                        "C"             -> return Right
-                        "D"             -> return Left
-                        else -> {}
+                        "A" -> return Up
+                        "B" -> return Down
+                        "C" -> return Right
+                        "D" -> return Left
+                        else -> {
+                        }
                     }
                 }
                 Regex("$ESC(..)").matchEntire(line)?.let { ret ->
                     val key = ret.groups[1]!!.value
                     when (key) {
-                        "OP"            -> return F1
-                        "OQ"            -> return F2
-                        "OR"            -> return F3
-                        "OS"            -> return F4
-                        else -> {}
+                        "OP" -> return F1
+                        "OQ" -> return F2
+                        "OR" -> return F3
+                        "OS" -> return F4
+                        else -> {
+                        }
                     }
                 }
                 Regex("$ESC(.)").matchEntire(line)?.let { ret ->
                     return AltKey(ret.groups[1]!!.value[0])
                 }
 
-                return when (line) {
-                    "\u007F"    -> BS
-                    "\u0009"    -> Tab
-                    "\n"        -> Return
-                    "<CR>"      -> Return
-                    "$ESC"      -> Esc
-                    "<SP>"      -> Normal(' ')
-                    "<TAB>"     -> Normal('\t')
-                    else -> Normal(line[0])
+                when (line) {
+                    "\u007F"    -> return BS
+                    "\u0009"    -> return Tab
+                    "\n"        -> return Return
+                    "<CR>"      -> return Return
+                    "$ESC"      -> return Esc
+                    "<SP>"      -> return Normal(' ')
+                    "<TAB>"     -> return Normal('\t')
+                    else -> {}
                 }
+
+                if (line.length == 1) {
+                    val ch = line[0]
+                    if (ch in '\u0001'..'\u001a') {
+                        return CtrlKey(ch + ('a'.toInt() - 1))
+                    }
+                }
+
+                return Normal(line[0])
             }
         }
     }
